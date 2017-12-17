@@ -1,16 +1,29 @@
-library(rgl)
-library(devtools)
-library(ggplot2)
-library(colorRamps)
-library(plot3D)
-library(bio3d)
 options(warn=-1)
 
 
-run <- function(file_name = "", file_type = "list", save_files = FALSE,
-                skip_frames = 0, plots = TRUE, protein_representation = "CA",
+#' Main function
+#'
+#' @param file_name path to file
+#' @param file_type list or file
+#' @param save_files boolean
+#' @param skip_frames number how many first frames should be skipped
+#' @param plots boolean
+#' @param protein_representation CA or all
+#' @param chain chain ID
+#' @param cluster_quantity number
+#' @param receptor_peptide_mode boolean
+#' @param reference_structure_pdb_code code from PDB web repository
+#' @param reference_structure_file path to file
+#' @param reference_chain_id chain ID
+#' @param kmeans_algorithm Hartigan-Wong / MacQueen / Lloyd / Forgy
+#' @param output_directory path to directory
+
+#' @return return object with clusters data
+#' @export
+run <- function(file_name = "", file_type = "list", save_files = F,
+                skip_frames = 0, plots = T, protein_representation = "CA",
                 chain = "", cluster_quantity = 10, receptor_peptide_mode = F,
-                reference_structure_pdb_code = '2p1t',
+                reference_structure_pdb_code = '',
                 reference_structure_file = '',
                 reference_chain_id = '',
                 kmeans_algorithm = "Hartigan-Wong",
@@ -61,7 +74,7 @@ set_directory <- function(directory) {
   setwd(directory)
 }
 
-create_folder_structure <- function() {
+create_folder_structure <<- function() {
   if(save_files){
     centroid_folder_name <<- "centroids/"
     medoid_folder_name <<- "medoids/"
@@ -84,7 +97,7 @@ prepare_data <- function(file_name) {
     if(reference_chain_id == ''){
       reference_chain_id <<- NULL
     }
-    
+
     if(reference_structure_pdb_code != '' & reference_structure_file != ''){
       stop("Choose one reference source file. We can pass either pdb_code or file.")
     }
@@ -124,7 +137,7 @@ prepare_data <- function(file_name) {
       if (exists("dataset_from_file")) {
         temp_dataset <- readPdbCoord(file)$selected
         temp_dataset_all <- readPdbCoord(file)$all
-        
+
         if (dim(temp_dataset)[1] != first_lenght) {
           stop("All the files should be of equal length: ", file)
         }
@@ -379,7 +392,7 @@ klasterMed <- function(kol, n0, n1, k_count) {
   } else {
     for(i in 1:cluster_quantity){
       Yref[i] = "n.a"
-    }  
+    }
   }
 
   list(cen = Ycen, med = Ymed, nClust = nKlast, mRMS = mRMSD,
@@ -404,7 +417,6 @@ mutInf <- function(kol, traj) {
 gg_color_hue <- function(n) {
   hues <- seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
-  c("#00BF7D","#A3A500", "#E76BF3", "#F8766D")
 }
 
 get_colors <- function(groups, group.col = palette()) {
@@ -413,7 +425,7 @@ get_colors <- function(groups, group.col = palette()) {
   if (ngrps > length(group.col)) {
     group.col <- rep(group.col, ngrps)
   }
-  
+
   color <- group.col[as.numeric(groups)]
   names(color) <- as.vector(groups)
   return(color)
@@ -491,7 +503,6 @@ klasterOut <- function(K) {
 
     pca_kmeans1 <- ggplot(data = m, aes(x = V1, y = V2, color = cluster)) +
       geom_point(size = 2, alpha = 1/2, col = selected_colors) +
-      #geom_smooth(se = FALSE, method = "lm") +
       labs(title = "Kmeans plot", x = "PC1", y = "PC2")
     savePlot(pca_kmeans1, "PCA_2dplot_PC1_PC2_kmeans_groups.pdf")
 
@@ -641,7 +652,7 @@ make_centroids_medoids <- function() {
   YmedRMS <<- trajectory_all[, , which.min(rCen)]
   bFact <- sqrt(bFact/nDec)
   bFactM <- sqrt((3*bFact)/(8*pi*pi))
-  
+
   bFactM <- sqrt(bFactM/nDec)
   bFactM <- sqrt((3*bFactM)/(8*pi*pi))
 }
@@ -712,87 +723,3 @@ k_means_cluster <- function() {
   }
   klasterOut(K)
 }
-
-tryCatch(
-  {
-    args <- commandArgs(trailingOnly=TRUE)
-    if (!is.na(args[1])) {
-      file_name <- args[1]
-    } else {
-      stop("No file name in given args")
-    }
-    if (!is.na(args[2])) {
-      output_directory <- args[2]
-    } else {
-      output_directory <- ""
-    }
-    if(!is.na(args[3])){
-      file_type <- args[3]
-    } else {
-      file_type <- "file"
-    }
-    if(!is.na(args[4])){
-      skip_frames <- as.numeric(args[4])
-    } else {
-      skip_frames <- 0
-    }
-    if(!is.na(args[5])){
-      plots <- as.logical(args[5])
-    } else {
-      plots <- TRUE
-    }
-    if(!is.na(args[6])){
-      protein_representation <- args[6]
-    } else {
-      protein_representation <- "ALL"
-    }
-    if(!is.na(args[7])){
-      chain <- args[7]
-    } else {
-      chain <- ""
-    }
-    if(!is.na(args[8])){
-      cluster_quantity <- as.numeric(args[8])
-    } else {
-      cluster_quantity <- FALSE
-    }
-    if(!is.na(args[9])){
-      kmeans_algorithm <- args[9]
-    } else {
-      kmeans_algorithm <- "Hartigan-Wong"
-    }
-    if(!is.na(args[10])){
-      r_p_mode <- as.logical(args[10])
-    } else {
-      r_p_mode <- FALSE
-    }
-    if(!is.na(args[11])){
-      reference_structure_pdb_code <- args[11]
-    } else {
-      reference_structure_pdb_code <- ""
-    }
-    if(!is.na(args[12])){
-      reference_structure_file <- args[12]
-    } else {
-      reference_structure_file <- ""
-    }
-    if(!is.na(args[13])){
-      reference_chain_id <- args[13]
-    } else {
-      reference_chain_id <- ""
-    }
-    wynik <- run(file_name = file_name, file_type = file_type, save_files = T,
-                 skip_frames = skip_frames, plots = plots,
-                 protein_representation = protein_representation,
-                 chain = chain, cluster_quantity = cluster_quantity,
-                 receptor_peptide_mode = r_p_mode,
-                 reference_structure_pdb_code = reference_structure_pdb_code,
-                 reference_structure_file = reference_structure_file,
-                 reference_chain_id = reference_chain_id,
-                 kmeans_algorithm = kmeans_algorithm,
-                 output_directory = output_directory)
-  },
-  error=function(cond) {
-    message(paste(cond, '\n'))
-  })
-

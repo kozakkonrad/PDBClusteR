@@ -1,0 +1,17 @@
+Package: PDBClusteR
+Type: Package
+Title: PDBClusteR: an R package for structural clustering of proteins and other biomolecules.
+Version: 0.0.1
+Authors@R: c(person("Konrad", "Kozak", email = "konrad.jakub.kozak@gmail.com", role = c("aut", "cre")), person("Piotr", "Pokarowski", email = "pokar@mimuw.edu.pl", role = "aut"), person("Sebastian", "Kmiecik", email = "sekmi@chem.uw.edu.pl", role = "ctb"))
+Description: PDBClusteR: an R package for structural clustering of proteins and other biomolecules.
+Depends: R (>= 3.4.1)
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Imports: rgl,
+		devtools,
+		ggplot2,
+		colorRamps,
+		plot3D,
+		bio3d
+RoxygenNote: 6.0.1
